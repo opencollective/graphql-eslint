@@ -9,7 +9,7 @@ import { Pointer } from './types.js';
 const debug = debugFactory('graphql-eslint:operations');
 const operationsCache = new ModuleCache<Source[]>();
 
-const handleVirtualPath = (documents: Source[]): Source[] => {
+const handleVirtualPath = (documents: Source[], project: GraphQLProjectConfig): Source[] => {
   const filepathMap: Record<string, number> = Object.create(null);
 
   return documents.map(source => {
@@ -21,7 +21,7 @@ const handleVirtualPath = (documents: Source[]): Source[] => {
     const index = (filepathMap[location] += 1);
     return {
       ...source,
-      location: resolve(location, `${index}_document.graphql`),
+      location: resolve(location, `${index}_${project.name ?? 'default'}_document.graphql`),
     };
   });
 };
@@ -45,7 +45,7 @@ export const getDocuments = (project: GraphQLProjectConfig): Source[] => {
       const operationsPaths = fg.sync(project.documents as Pointer, { absolute: true });
       debug('Operations pointers %O', operationsPaths);
     }
-    siblings = handleVirtualPath(documents);
+    siblings = handleVirtualPath(documents, project);
     operationsCache.set(documentsKey, siblings);
   }
 

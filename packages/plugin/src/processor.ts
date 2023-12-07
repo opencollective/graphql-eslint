@@ -36,6 +36,13 @@ function getMatchingProjects(onDiskConfig: GraphQLConfig, filePath: string) {
     }
   }
 
+  // Default, also help with tests
+  const project = onDiskConfig?.getProjectForFile(filePath);
+  const projectName = project?.name ?? 'default';
+  if (!matchingProjects[projectName]) {
+    matchingProjects[projectName] = project;
+  }
+
   return matchingProjects;
 }
 
@@ -55,7 +62,7 @@ export const processor = {
       const projects = getMatchingProjects(onDiskConfig, filePath);
 
       for (const [projectName, project] of Object.entries(projects)) {
-        const pluckConfig: GraphQLTagPluckOptions = project.extensions.pluckConfig;
+        const pluckConfig: GraphQLTagPluckOptions = project?.extensions.pluckConfig;
 
         if (pluckConfig) {
           const {
@@ -86,7 +93,7 @@ export const processor = {
 
         for (const item of sources) {
           blocks.push({
-            filename: `${projectName || 'unknown'}_document.graphql`,
+            filename: `${projectName ?? 'default'}_document.graphql`,
             text: item.body,
             lineOffset: item.locationOffset.line - 1,
             // @ts-expect-error -- `index` field exist but show ts error

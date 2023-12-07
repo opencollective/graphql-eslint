@@ -24,23 +24,26 @@ const RELEVANT_KEYWORDS = ['gql', 'graphql', 'GraphQL'] as const;
 function getMatchingProjects(onDiskConfig: GraphQLConfig, filePath: string) {
   const matchingProjects: Record<string, GraphQLProjectConfig> = {};
 
-  if (onDiskConfig?.projects) {
-    // Reference:
-    // https://github.com/kamilkisiela/graphql-config/blob/423de0e07214ad6d800fb508a74951a5bfc045e6/src/config.ts#L143
-    for (const [projectName, project] of Object.entries(onDiskConfig.projects)) {
-      if (project.match(filePath)) {
-        matchingProjects[projectName] = project;
-      } else if (!project.include && !project.exclude) {
-        matchingProjects[projectName] = project;
-      }
-    }
-  }
-
-  // Default, also help with tests
+  // Default project for file
+  // - ok if project is null
+  // - getProjectForFile may be mocked in tests
   const project = onDiskConfig?.getProjectForFile(filePath);
   const projectName = project?.name ?? 'default';
   if (!matchingProjects[projectName]) {
     matchingProjects[projectName] = project;
+  }
+
+  // If more than one project
+  if (onDiskConfig?.projects && Object.keys(onDiskConfig.projects).length > 1) {
+    // Reference:
+    // https://github.com/kamilkisiela/graphql-config/blob/423de0e07214ad6d800fb508a74951a5bfc045e6/src/config.ts#L143
+    for (const project of Object.values(onDiskConfig.projects)) {
+      if (project.match(filePath)) {
+        matchingProjects[project.name] = project;
+      } else if (!project.include && !project.exclude) {
+        matchingProjects[project.name] = project;
+      }
+    }
   }
 
   return matchingProjects;
@@ -92,8 +95,10 @@ export const processor = {
         });
 
         for (const item of sources) {
+          // We avoid an unnecessary prefix when it's falsy or default
+          const prefix = projectName && projectName !== 'default' ? `${projectName}_` : '';
           blocks.push({
-            filename: `${projectName ?? 'default'}_document.graphql`,
+            filename: `${prefix}document.graphql`,
             text: item.body,
             lineOffset: item.locationOffset.line - 1,
             // @ts-expect-error -- `index` field exist but show ts error

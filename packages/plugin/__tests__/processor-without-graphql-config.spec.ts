@@ -13,7 +13,7 @@ describe('processor.preprocess() without graphql-config', () => {
     expect(blocks).toMatchInlineSnapshot(`
       [
         {
-          filename: default_document.graphql,
+          filename: document.graphql,
           lineOffset: 2,
           offset: 64,
           text: query users { id },
@@ -34,7 +34,7 @@ describe('processor.preprocess() without graphql-config', () => {
     expect(blocks).toMatchInlineSnapshot(`
       [
         {
-          filename: default_document.graphql,
+          filename: document.graphql,
           lineOffset: 0,
           offset: 17,
           text: query users { id },

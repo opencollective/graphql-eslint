@@ -19,9 +19,10 @@ const handleVirtualPath = (documents: Source[], project: GraphQLProjectConfig): 
     }
     filepathMap[location] ??= -1;
     const index = (filepathMap[location] += 1);
+    const prefix = project.name && project.name !== 'default' ? `${project.name}_` : '';
     return {
       ...source,
-      location: resolve(location, `${index}_${project.name ?? 'default'}_document.graphql`),
+      location: resolve(location, `${index}_${prefix}document.graphql`),
     };
   });
 };

@@ -156,6 +156,19 @@ importers:
         specifier: 8.48.0
         version: 8.48.0(patch_hash=yi5cqffjk423hcgr7hl33kguwu)
 
+  examples/multiple-projects-single-file:
+    dependencies:
+      graphql:
+        specifier: 16.8.0
+        version: 16.8.0
+    devDependencies:
+      '@graphql-eslint/eslint-plugin':
+        specifier: workspace:*
+        version: link:../../packages/plugin/dist
+      eslint:
+        specifier: 8.48.0
+        version: 8.48.0(patch_hash=yi5cqffjk423hcgr7hl33kguwu)
+
   examples/prettier:
     dependencies:
       graphql:

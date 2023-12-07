@@ -96,4 +96,11 @@ describe('Examples', () => {
     expect(countErrors(results)).toBe(4);
     testSnapshot(results);
   });
+
+  it('should work in multiple projects within a single file', () => {
+    const cwd = join(CWD, 'examples/multiple-projects-single-file');
+    const results = getESLintOutput(cwd);
+    expect(countErrors(results)).toBe(4);
+    testSnapshot(results);
+  });
 });

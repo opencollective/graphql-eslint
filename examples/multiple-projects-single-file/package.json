@@ -1,0 +1,16 @@
+{
+  "name": "@graphql-eslint/example-multiple-projects-single-file",
+  "version": "0.0.0",
+  "author": "Dimitri POSTOLOV",
+  "private": true,
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "graphql": "16.8.0"
+  },
+  "devDependencies": {
+    "@graphql-eslint/eslint-plugin": "workspace:*",
+    "eslint": "8.48.0"
+  }
+}

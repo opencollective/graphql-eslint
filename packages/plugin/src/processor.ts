@@ -30,44 +30,54 @@ export const processor = {
     }
 
     let keywords: ReadonlyArray<string> = RELEVANT_KEYWORDS;
-    const pluckConfig: GraphQLTagPluckOptions =
-      onDiskConfig?.getProjectForFile(filePath).extensions.pluckConfig;
-
-    if (pluckConfig) {
-      const {
-        modules = [],
-        globalGqlIdentifierName = ['gql', 'graphql'],
-        gqlMagicComment = 'GraphQL',
-      } = pluckConfig;
-
-      keywords = [
-        ...new Set(
-          [
-            ...modules.map(({ identifier }) => identifier),
-            ...asArray(globalGqlIdentifierName),
-            gqlMagicComment,
-          ].filter(truthy),
-        ),
-      ];
-    }
-
-    if (keywords.every(keyword => !code.includes(keyword))) {
-      return [code];
-    }
 
     try {
-      const sources = gqlPluckFromCodeStringSync(filePath, code, {
-        skipIndent: true,
-        ...pluckConfig,
-      });
+      const blocks: Block[] = [];
 
-      const blocks: Block[] = sources.map(item => ({
-        filename: 'document.graphql',
-        text: item.body,
-        lineOffset: item.locationOffset.line - 1,
-        // @ts-expect-error -- `index` field exist but show ts error
-        offset: item.locationOffset.index + 1,
-      }));
+      // TODO: generate a list of matching projects to consider
+      const projects = onDiskConfig?.projects;
+
+      for (const [projectName, project] of Object.entries(projects)) {
+        const pluckConfig: GraphQLTagPluckOptions = project.extensions.pluckConfig;
+
+        if (pluckConfig) {
+          const {
+            modules = [],
+            globalGqlIdentifierName = ['gql', 'graphql'],
+            gqlMagicComment = 'GraphQL',
+          } = pluckConfig;
+
+          keywords = [
+            ...new Set(
+              [
+                ...modules.map(({ identifier }) => identifier),
+                ...asArray(globalGqlIdentifierName),
+                gqlMagicComment,
+              ].filter(truthy),
+            ),
+          ];
+        }
+
+        if (keywords.every(keyword => !code.includes(keyword))) {
+          continue;
+        }
+
+        const sources = gqlPluckFromCodeStringSync(filePath, code, {
+          skipIndent: true,
+          ...pluckConfig,
+        });
+
+        for (const item of sources) {
+          blocks.push({
+            filename: `${projectName || 'unknown'}_document.graphql`,
+            text: item.body,
+            lineOffset: item.locationOffset.line - 1,
+            // @ts-expect-error -- `index` field exist but show ts error
+            offset: item.locationOffset.index + 1,
+          });
+        }
+      }
+
       blocksMap.set(filePath, blocks);
 
       return [...blocks, code /* source code must be provided and be last */];

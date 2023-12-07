@@ -5,7 +5,7 @@ import {
 } from '@graphql-tools/graphql-tag-pluck';
 import { asArray } from '@graphql-tools/utils';
 import { Linter } from 'eslint';
-import { GraphQLConfig } from 'graphql-config';
+import { GraphQLConfig, GraphQLProjectConfig } from 'graphql-config';
 import { loadOnDiskGraphQLConfig } from './graphql-config.js';
 import { CWD, REPORT_ON_FIRST_CHARACTER, truthy } from './utils.js';
 
@@ -21,6 +21,24 @@ let onDiskConfigLoaded = false;
 
 const RELEVANT_KEYWORDS = ['gql', 'graphql', 'GraphQL'] as const;
 
+function getMatchingProjects(onDiskConfig: GraphQLConfig, filePath: string) {
+  const matchingProjects: Record<string, GraphQLProjectConfig> = {};
+
+  if (onDiskConfig?.projects) {
+    // Reference:
+    // https://github.com/kamilkisiela/graphql-config/blob/423de0e07214ad6d800fb508a74951a5bfc045e6/src/config.ts#L143
+    for (const [projectName, project] of Object.entries(onDiskConfig.projects)) {
+      if (project.match(filePath)) {
+        matchingProjects[projectName] = project;
+      } else if (!project.include && !project.exclude) {
+        matchingProjects[projectName] = project;
+      }
+    }
+  }
+
+  return matchingProjects;
+}
+
 export const processor = {
   supportsAutofix: true,
   preprocess(code, filePath) {
@@ -34,8 +52,7 @@ export const processor = {
     try {
       const blocks: Block[] = [];
 
-      // TODO: generate a list of matching projects to consider
-      const projects = onDiskConfig?.projects;
+      const projects = getMatchingProjects(onDiskConfig, filePath);
 
       for (const [projectName, project] of Object.entries(projects)) {
         const pluckConfig: GraphQLTagPluckOptions = project.extensions.pluckConfig;

@@ -48,7 +48,7 @@ export const logger = {
 
 export const normalizePath = (path: string): string => (path || '').replace(/\\/g, '/');
 
-export const VIRTUAL_DOCUMENT_REGEX = /\/\d+_document.graphql$/;
+export const VIRTUAL_DOCUMENT_REGEX = /\/\d+_([a-zA-Z0-9]*)_document.graphql$/;
 
 export const CWD = process.cwd();
 
